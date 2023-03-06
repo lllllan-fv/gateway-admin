@@ -13,7 +13,7 @@ func InitHttpRouter() *gin.Engine {
 	router.GET("/ping", func(c *gin.Context) { resp.Success(c, "pong") })
 
 	router.Use(
-	// middleware.HTTPAccessModeMiddleware(),
+		middleware.HTTPAccessModeMiddleware(),
 	)
 
 	return router

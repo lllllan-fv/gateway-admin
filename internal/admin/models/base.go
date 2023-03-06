@@ -10,6 +10,10 @@ var (
 	err error
 )
 
+func GetDB() *gorm.DB {
+	return orm
+}
+
 func Init(c db.Connection) {
 	orm, err = gorm.Open("mysql", c.GetDB("default"))
 
