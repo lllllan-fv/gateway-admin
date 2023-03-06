@@ -3,7 +3,7 @@ package redis
 import (
 	"context"
 
-	"github.com/go-redis/redis"
+	"github.com/go-redis/redis/v8"
 	"github.com/lllllan-fv/gateway-admin/conf"
 )
 
@@ -22,8 +22,7 @@ func init() {
 	})
 
 	ctx := context.Background()
-	_, err := rdb.Ping(ctx).Result()
-	if err != nil {
+	if _, err := rdb.Ping(ctx).Result(); err != nil {
 		panic(err)
 	}
 
