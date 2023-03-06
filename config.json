@@ -27,9 +27,9 @@
 	"login_url": "/login",
 	"debug": true,
 	"env": "local",
-	"info_log": "/home/lllllan/github/gateway-admin/logs/info.log",
-	"error_log": "/home/lllllan/github/gateway-admin/logs/error.log",
-	"access_log": "/home/lllllan/github/gateway-admin/logs/access.log",
+	"info_log": "/home/lllllan/github/gateway-admin/internal/admin/logs/info.log",
+	"error_log": "/home/lllllan/github/gateway-admin/internal/admin/logs/error.log",
+	"access_log": "/home/lllllan/github/gateway-admin/internal/admin/logs/access.log",
 	"color_scheme": "skin-black",
 	"session_life_time": 7200,
 	"file_upload_engine": {

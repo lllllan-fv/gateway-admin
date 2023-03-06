@@ -19,9 +19,9 @@ import (
 	"github.com/GoAdminGroup/go-admin/template"
 	"github.com/GoAdminGroup/go-admin/template/chartjs"
 	"github.com/gin-gonic/gin"
-	"github.com/lllllan-fv/gateway-admin/models"
-	"github.com/lllllan-fv/gateway-admin/pages"
-	"github.com/lllllan-fv/gateway-admin/tables"
+	"github.com/lllllan-fv/gateway-admin/internal/admin/models"
+	"github.com/lllllan-fv/gateway-admin/internal/admin/pages"
+	"github.com/lllllan-fv/gateway-admin/internal/admin/tables"
 )
 
 func main() {
