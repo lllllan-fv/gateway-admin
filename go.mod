@@ -8,6 +8,7 @@ require (
 	github.com/gin-gonic/gin v1.9.0
 	github.com/go-redis/redis/v8 v8.11.5
 	github.com/jinzhu/gorm v1.9.16
+	golang.org/x/time v0.0.0-20191024005414-555d28b269f0
 )
 
 require (
