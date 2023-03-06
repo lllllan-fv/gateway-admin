@@ -6,6 +6,7 @@ require (
 	github.com/GoAdminGroup/go-admin v1.2.24
 	github.com/GoAdminGroup/themes v0.0.43
 	github.com/gin-gonic/gin v1.9.0
+	github.com/go-redis/redis v6.15.9+incompatible
 	github.com/jinzhu/gorm v1.9.16
 )
 
