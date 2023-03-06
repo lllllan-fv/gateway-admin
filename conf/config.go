@@ -35,7 +35,7 @@ func GetConfig() *Config {
 	return &config
 }
 
-func init() {
+func Init() {
 	config = Config{
 		MySQL: MySQL{
 			Addr:     "localhost:3306",

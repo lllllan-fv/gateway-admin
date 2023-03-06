@@ -13,7 +13,7 @@ func GetRedisClient() *redis.Client {
 	return rdb
 }
 
-func init() {
+func Init() {
 	cfg := conf.GetConfig()
 	rdb = redis.NewClient(&redis.Options{
 		Addr:     cfg.Redis.Addr,
@@ -25,5 +25,4 @@ func init() {
 	if _, err := rdb.Ping(ctx).Result(); err != nil {
 		panic(err)
 	}
-
 }

@@ -14,6 +14,7 @@ func InitHttpRouter() *gin.Engine {
 
 	router.Use(
 		middleware.HTTPAccessModeMiddleware(),
+		middleware.HTTPFlowCountMiddleware(),
 	)
 
 	return router
