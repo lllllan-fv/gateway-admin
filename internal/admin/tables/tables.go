@@ -12,9 +12,15 @@ import "github.com/GoAdminGroup/go-admin/plugins/admin/modules/table"
 //
 // example:
 //
+// "gateway_app" => http://localhost:8080/admin/info/gateway_app
+// "gateway_service_info" => http://localhost:8080/admin/info/gateway_service_info
+//
 // example end
 //
 var Generators = map[string]table.Generator{
+
+	"gateway_app":          GetGatewayAppTable,
+	"gateway_service_info": GetGatewayServiceInfoTable,
 
 	// generators end
 }
