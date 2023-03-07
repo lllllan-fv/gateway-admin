@@ -44,9 +44,9 @@ func NewRedisFlowCountService(appID string, interval time.Duration) *RedisFlowCo
 			dayKey := reqCounter.GetDayKey(currentTime)
 			hourKey := reqCounter.GetHourKey(currentTime)
 			rdb.IncrBy(context.Background(), dayKey, tickerCount)
-			rdb.Expire(context.Background(), dayKey, 86400*2)
+			rdb.Expire(context.Background(), dayKey, 24*time.Hour)
 			rdb.IncrBy(context.Background(), hourKey, tickerCount)
-			rdb.Expire(context.Background(), hourKey, 86400*2)
+			rdb.Expire(context.Background(), hourKey, time.Hour)
 
 			totalCount, err := reqCounter.GetDayData(currentTime)
 			if err != nil {

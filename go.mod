@@ -5,6 +5,7 @@ go 1.18
 require (
 	github.com/GoAdminGroup/go-admin v1.2.24
 	github.com/GoAdminGroup/themes v0.0.43
+	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/gin-gonic/gin v1.9.0
 	github.com/go-redis/redis/v8 v8.11.5
 	github.com/jinzhu/gorm v1.9.16

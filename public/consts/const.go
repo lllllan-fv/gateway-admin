@@ -14,4 +14,7 @@ const (
 
 	RedisFlowDayKey  = "flow_day_count"
 	RedisFlowHourKey = "flow_hour_count"
+
+	JwtSignKey = "my_sign_key"
+	JwtExpires = 60 * 60
 )
