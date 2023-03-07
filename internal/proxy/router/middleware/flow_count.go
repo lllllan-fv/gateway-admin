@@ -2,6 +2,7 @@ package middleware
 
 import (
 	"errors"
+	"fmt"
 
 	"github.com/gin-gonic/gin"
 	"github.com/lllllan-fv/gateway-admin/internal/proxy/models"
@@ -39,6 +40,31 @@ func HTTPFlowCountMiddleware() gin.HandlerFunc {
 
 		// dayServiceCount, _ := serviceCounter.GetDayData(time.Now())
 		// fmt.Printf("serviceCounter qps:%v,dayCount:%v", serviceCounter.QPS, dayServiceCount)
+		c.Next()
+	}
+}
+
+func HTTPJwtFlowCountMiddleware() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		appInterface, ok := c.Get("app")
+		if !ok {
+			c.Next()
+			return
+		}
+		appInfo := appInterface.(*models.GatewayApp)
+
+		appCounter, err := handler.GetFlowCounterHandler().GetCounter(consts.FlowAppPrefix + appInfo.AppID)
+		if err != nil {
+			resp.Error(c, 2002, err)
+			return
+		}
+		appCounter.Increase()
+
+		if appInfo.QPD > 0 && appCounter.TotalCount > appInfo.QPD {
+			resp.Error(c, 2003, fmt.Errorf("租户日请求量限流 limit:%v current:%v", appInfo.QPD, appCounter.TotalCount))
+			return
+		}
+
 		c.Next()
 	}
 }
