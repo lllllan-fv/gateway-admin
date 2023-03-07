@@ -22,6 +22,7 @@ func InitHttpRouter() *gin.Engine {
 		middleware.HTTPWhiteListMiddleware(),
 		middleware.HTTPBlackListMiddleware(),
 		middleware.HTTPHeaderTransferMiddleware(),
+		middleware.HTTPStripUriMiddleware(),
 	)
 
 	return router
