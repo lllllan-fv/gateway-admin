@@ -2,7 +2,6 @@ package middleware
 
 import (
 	"errors"
-	"fmt"
 
 	"github.com/gin-gonic/gin"
 	"github.com/lllllan-fv/gateway-admin/internal/proxy/models"
@@ -19,7 +18,6 @@ func HTTPFlowCountMiddleware() gin.HandlerFunc {
 			return
 		}
 		serviceDetail := serviceInterface.(*models.GatewayServiceInfo)
-		fmt.Printf("serviceDetail: %v\n", serviceDetail)
 
 		// 统计项 1 全站 2 服务 3 租户
 		h := handler.GetFlowCounterHandler()
