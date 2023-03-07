@@ -50,3 +50,29 @@ func HTTPFlowLimitMiddleware() gin.HandlerFunc {
 		c.Next()
 	}
 }
+
+func HTTPJwtFlowLimitMiddleware() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		appInterface, ok := c.Get("app")
+		if !ok {
+			c.Next()
+			return
+		}
+		appInfo := appInterface.(*models.GatewayApp)
+
+		if appInfo.QPS > 0 {
+			if clientLimiter, err := handler.GetFlowLimiterHandler().GetLimiter(
+				consts.FlowAppPrefix+appInfo.AppID+"_"+c.ClientIP(),
+				float64(appInfo.QPS),
+			); err != nil {
+				resp.Error(c, 5001, err)
+				return
+			} else if !clientLimiter.Allow() {
+				resp.Error(c, 5002, fmt.Errorf("%v flow limit %v", c.ClientIP(), appInfo.QPS))
+				return
+			}
+		}
+
+		c.Next()
+	}
+}
