@@ -11,7 +11,6 @@ import (
 	"github.com/lllllan-fv/gateway-admin/public/utils"
 )
 
-// 匹配接入方式 基于请求信息
 func HTTPWhiteListMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		serverInterface, ok := c.Get("service")

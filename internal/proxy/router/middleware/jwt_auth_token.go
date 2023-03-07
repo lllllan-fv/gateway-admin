@@ -12,7 +12,7 @@ import (
 	"github.com/lllllan-fv/gateway-admin/public/resp"
 )
 
-//jwt auth token
+// jwt auth token
 func HTTPJwtAuthTokenMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		serverInterface, ok := c.Get("service")
