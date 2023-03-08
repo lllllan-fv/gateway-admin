@@ -1,5 +1,7 @@
 package models
 
+import "strings"
+
 type GatewayServiceInfo struct {
 	ID                     uint
 	LoadType               int
@@ -36,4 +38,12 @@ type GatewayServiceInfo struct {
 
 func (GatewayServiceInfo) TableName() string {
 	return "gateway_service_info"
+}
+
+func (t *GatewayServiceInfo) GetIPListByModel() []string {
+	return strings.Split(t.IPList, ",")
+}
+
+func (t *GatewayServiceInfo) GetWeightListByModel() []string {
+	return strings.Split(t.WeightList, ",")
 }
