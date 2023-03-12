@@ -6,10 +6,12 @@ func Run() {
 	server.HttpServerRun()
 	server.HttpsServerRun()
 	server.TcpServerRun()
+	server.GrpcServerRun()
 }
 
 func Stop() {
 	server.HttpServerStop()
 	server.HttpsServerStop()
 	server.TcpServerStop()
+	server.GrpcServerStop()
 }
