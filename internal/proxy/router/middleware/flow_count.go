@@ -3,12 +3,14 @@ package middleware
 import (
 	"errors"
 	"fmt"
+	"log"
 
 	"github.com/gin-gonic/gin"
 	"github.com/lllllan-fv/gateway-admin/internal/proxy/models"
 	"github.com/lllllan-fv/gateway-admin/public/consts"
 	"github.com/lllllan-fv/gateway-admin/public/handler"
 	"github.com/lllllan-fv/gateway-admin/public/resp"
+	"google.golang.org/grpc"
 )
 
 func HTTPFlowCountMiddleware() gin.HandlerFunc {
@@ -97,5 +99,27 @@ func TCPFlowCountMiddleware() func(c *TcpSliceRouterContext) {
 		serviceCounter.Increase()
 
 		c.Next()
+	}
+}
+
+func GrpcFlowCountMiddleware(serviceDetail *models.GatewayServiceInfo) func(srv interface{}, ss grpc.ServerStream, info *grpc.StreamServerInfo, handler grpc.StreamHandler) error {
+	return func(srv interface{}, ss grpc.ServerStream, info *grpc.StreamServerInfo, h grpc.StreamHandler) error {
+		totalCounter, err := handler.GetFlowCounterHandler().GetCounter(consts.FlowTotal)
+		if err != nil {
+			return err
+		}
+		totalCounter.Increase()
+
+		serviceCounter, err := handler.GetFlowCounterHandler().GetCounter(consts.FlowServicePrefix + serviceDetail.ServiceName)
+		if err != nil {
+			return err
+		}
+		serviceCounter.Increase()
+
+		if err := h(srv, ss); err != nil {
+			log.Printf("GrpcFlowCountMiddleware failed with error %v\n", err)
+			return err
+		}
+		return nil
 	}
 }

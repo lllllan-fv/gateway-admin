@@ -8,6 +8,7 @@ import (
 
 	"github.com/lllllan-fv/gateway-admin/internal/proxy/dao"
 	"github.com/lllllan-fv/gateway-admin/internal/proxy/models"
+	"github.com/lllllan-fv/gateway-admin/internal/proxy/router/middleware"
 	"github.com/lllllan-fv/gateway-admin/public/consts"
 	"github.com/lllllan-fv/gateway-admin/public/handler"
 	"github.com/mwitkow/grpc-proxy/proxy"
@@ -43,7 +44,7 @@ func GrpcServerRun() {
 			grpcHandler := NewGrpcLoadBalanceHandler(rb)
 			s := grpc.NewServer(
 				grpc.ChainStreamInterceptor(
-				// grpc_proxy_middleware.GrpcFlowCountMiddleware(serviceDetail),
+					middleware.GrpcFlowCountMiddleware(serviceDetail),
 				// grpc_proxy_middleware.GrpcFlowLimitMiddleware(serviceDetail),
 				// grpc_proxy_middleware.GrpcJwtAuthTokenMiddleware(serviceDetail),
 				// grpc_proxy_middleware.GrpcJwtFlowCountMiddleware(serviceDetail),
