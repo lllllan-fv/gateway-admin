@@ -50,7 +50,7 @@ func GrpcServerRun() {
 					middleware.GrpcJwtFlowCountMiddleware(serviceDetail),
 					middleware.GrpcJwtFlowLimitMiddleware(serviceDetail),
 					middleware.GrpcWhiteListMiddleware(serviceDetail),
-				// grpc_proxy_middleware.GrpcBlackListMiddleware(serviceDetail),
+					middleware.GrpcBlackListMiddleware(serviceDetail),
 				// grpc_proxy_middleware.GrpcHeaderTransferMiddleware(serviceDetail),
 				),
 				grpc.CustomCodec(proxy.Codec()),
