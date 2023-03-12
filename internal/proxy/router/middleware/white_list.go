@@ -3,12 +3,15 @@ package middleware
 import (
 	"errors"
 	"fmt"
+	"log"
 	"strings"
 
 	"github.com/gin-gonic/gin"
 	"github.com/lllllan-fv/gateway-admin/internal/proxy/models"
 	"github.com/lllllan-fv/gateway-admin/public/resp"
 	"github.com/lllllan-fv/gateway-admin/public/utils"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/peer"
 )
 
 func HTTPWhiteListMiddleware() gin.HandlerFunc {
@@ -64,5 +67,35 @@ func TCPWhiteListMiddleware() func(c *TcpSliceRouterContext) {
 			}
 		}
 		c.Next()
+	}
+}
+
+func GrpcWhiteListMiddleware(serviceDetail *models.GatewayServiceInfo) func(srv interface{}, ss grpc.ServerStream, info *grpc.StreamServerInfo, handler grpc.StreamHandler) error {
+	return func(srv interface{}, ss grpc.ServerStream, info *grpc.StreamServerInfo, handler grpc.StreamHandler) error {
+		iplist := []string{}
+		if serviceDetail.WhiteList != "" {
+			iplist = strings.Split(serviceDetail.WhiteList, ",")
+		}
+
+		peerCtx, ok := peer.FromContext(ss.Context())
+		if !ok {
+			return errors.New("peer not found with context")
+		}
+
+		peerAddr := peerCtx.Addr.String()
+		addrPos := strings.LastIndex(peerAddr, ":")
+		clientIP := peerAddr[0:addrPos]
+
+		if serviceDetail.OpenAuth == 1 && len(iplist) > 0 {
+			if !utils.InStringSlice(iplist, clientIP) {
+				return fmt.Errorf("%s not in white ip list", clientIP)
+			}
+		}
+
+		if err := handler(srv, ss); err != nil {
+			log.Printf("RPC failed with error %v\n", err)
+			return err
+		}
+		return nil
 	}
 }
