@@ -51,7 +51,7 @@ func GrpcServerRun() {
 					middleware.GrpcJwtFlowLimitMiddleware(serviceDetail),
 					middleware.GrpcWhiteListMiddleware(serviceDetail),
 					middleware.GrpcBlackListMiddleware(serviceDetail),
-				// grpc_proxy_middleware.GrpcHeaderTransferMiddleware(serviceDetail),
+					middleware.GrpcHeaderTransferMiddleware(serviceDetail),
 				),
 				grpc.CustomCodec(proxy.Codec()),
 				grpc.UnknownServiceHandler(grpcHandler),
@@ -86,7 +86,10 @@ func NewGrpcLoadBalanceHandler(lb load_balance.LoadBalance) grpc.StreamHandler {
 		director := func(ctx context.Context, fullMethodName string) (context.Context, *grpc.ClientConn, error) {
 			c, err := grpc.DialContext(ctx, nextAddr, grpc.WithCodec(proxy.Codec()), grpc.WithInsecure())
 			md, _ := metadata.FromIncomingContext(ctx)
-			outCtx, _ := context.WithCancel(ctx)
+
+			outCtx, cancel := context.WithCancel(ctx)
+			defer cancel()
+
 			outCtx = metadata.NewOutgoingContext(outCtx, md.Copy())
 			return outCtx, c, err
 		}
