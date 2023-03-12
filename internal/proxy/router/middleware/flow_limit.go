@@ -3,6 +3,7 @@ package middleware
 import (
 	"errors"
 	"fmt"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 	"github.com/lllllan-fv/gateway-admin/internal/proxy/models"
@@ -73,6 +74,58 @@ func HTTPJwtFlowLimitMiddleware() gin.HandlerFunc {
 			}
 		}
 
+		c.Next()
+	}
+}
+
+func TCPFlowLimitMiddleware() func(c *TcpSliceRouterContext) {
+	return func(c *TcpSliceRouterContext) {
+		serverInterface := c.Get("service")
+		if serverInterface == nil {
+			c.conn.Write([]byte("get service empty"))
+			c.Abort()
+			return
+		}
+		serviceDetail := serverInterface.(*models.GatewayServiceInfo)
+
+		if serviceDetail.ServiceFlowLimit != 0 {
+			serviceLimiter, err := handler.GetFlowLimiterHandler().GetLimiter(
+				consts.FlowServicePrefix+serviceDetail.ServiceName,
+				float64(serviceDetail.ServiceFlowLimit),
+			)
+			if err != nil {
+				c.conn.Write([]byte(err.Error()))
+				c.Abort()
+				return
+			}
+			if !serviceLimiter.Allow() {
+				c.conn.Write([]byte(fmt.Sprintf("service flow limit %v", serviceDetail.ServiceFlowLimit)))
+				c.Abort()
+				return
+			}
+		}
+
+		splits := strings.Split(c.conn.RemoteAddr().String(), ":")
+		clientIP := ""
+		if len(splits) == 2 {
+			clientIP = splits[0]
+		}
+		if serviceDetail.ClientIPFlowLimit > 0 {
+			clientLimiter, err := handler.GetFlowLimiterHandler().GetLimiter(
+				consts.FlowServicePrefix+serviceDetail.ServiceName+"_"+clientIP,
+				float64(serviceDetail.ClientIPFlowLimit),
+			)
+			if err != nil {
+				c.conn.Write([]byte(err.Error()))
+				c.Abort()
+				return
+			}
+			if !clientLimiter.Allow() {
+				c.conn.Write([]byte(fmt.Sprintf("%v flow limit %v", clientIP, serviceDetail.ClientIPFlowLimit)))
+				c.Abort()
+				return
+			}
+		}
 		c.Next()
 	}
 }

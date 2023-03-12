@@ -10,7 +10,7 @@ func InitTCPRouter() *middleware.TcpSliceRouterHandler {
 	router := middleware.NewTcpSliceRouter()
 	router.Group("/").Use(
 		middleware.TCPFlowCountMiddleware(),
-	// tcp_proxy_middleware.TCPFlowLimitMiddleware(),
+		middleware.TCPFlowLimitMiddleware(),
 	// tcp_proxy_middleware.TCPWhiteListMiddleware(),
 	// tcp_proxy_middleware.TCPBlackListMiddleware(),
 	)
