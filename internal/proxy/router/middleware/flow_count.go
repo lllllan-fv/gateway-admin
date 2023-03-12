@@ -1,6 +1,7 @@
 package middleware
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"log"
@@ -11,6 +12,7 @@ import (
 	"github.com/lllllan-fv/gateway-admin/public/handler"
 	"github.com/lllllan-fv/gateway-admin/public/resp"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/metadata"
 )
 
 func HTTPFlowCountMiddleware() gin.HandlerFunc {
@@ -118,6 +120,44 @@ func GrpcFlowCountMiddleware(serviceDetail *models.GatewayServiceInfo) func(srv 
 
 		if err := h(srv, ss); err != nil {
 			log.Printf("GrpcFlowCountMiddleware failed with error %v\n", err)
+			return err
+		}
+		return nil
+	}
+}
+
+func GrpcJwtFlowCountMiddleware(serviceDetail *models.GatewayServiceInfo) func(srv interface{}, ss grpc.ServerStream, info *grpc.StreamServerInfo, handler grpc.StreamHandler) error {
+	return func(srv interface{}, ss grpc.ServerStream, info *grpc.StreamServerInfo, h grpc.StreamHandler) error {
+		md, ok := metadata.FromIncomingContext(ss.Context())
+		if !ok {
+			return errors.New("miss metadata from context")
+		}
+
+		appInfos := md.Get("app")
+		if len(appInfos) == 0 {
+			if err := h(srv, ss); err != nil {
+				log.Printf("RPC failed with error %v\n", err)
+				return err
+			}
+			return nil
+		}
+
+		appInfo := &models.GatewayApp{}
+		if err := json.Unmarshal([]byte(appInfos[0]), appInfo); err != nil {
+			return err
+		}
+
+		appCounter, err := handler.GetFlowCounterHandler().GetCounter(consts.FlowAppPrefix + appInfo.AppID)
+		if err != nil {
+			return err
+		}
+		appCounter.Increase()
+		if appInfo.QPD > 0 && appCounter.TotalCount > appInfo.QPD {
+			return fmt.Errorf("租户日请求量限流 limit:%v current:%v", appInfo.QPD, appCounter.TotalCount)
+		}
+
+		if err := h(srv, ss); err != nil {
+			log.Printf("RPC failed with error %v\n", err)
 			return err
 		}
 		return nil
