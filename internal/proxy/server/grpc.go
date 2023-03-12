@@ -48,7 +48,7 @@ func GrpcServerRun() {
 					middleware.GrpcFlowLimitMiddleware(serviceDetail),
 					middleware.GrpcJwtAuthTokenMiddleware(serviceDetail),
 					middleware.GrpcJwtFlowCountMiddleware(serviceDetail),
-				// grpc_proxy_middleware.GrpcJwtFlowLimitMiddleware(serviceDetail),
+					middleware.GrpcJwtFlowLimitMiddleware(serviceDetail),
 				// grpc_proxy_middleware.GrpcWhiteListMiddleware(serviceDetail),
 				// grpc_proxy_middleware.GrpcBlackListMiddleware(serviceDetail),
 				// grpc_proxy_middleware.GrpcHeaderTransferMiddleware(serviceDetail),

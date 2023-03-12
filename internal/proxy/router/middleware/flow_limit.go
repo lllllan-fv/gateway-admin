@@ -1,6 +1,7 @@
 package middleware
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"log"
@@ -12,6 +13,7 @@ import (
 	"github.com/lllllan-fv/gateway-admin/public/handler"
 	"github.com/lllllan-fv/gateway-admin/public/resp"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/peer"
 )
 
@@ -172,6 +174,56 @@ func GrpcFlowLimitMiddleware(serviceDetail *models.GatewayServiceInfo) func(srv 
 
 		if err := h(srv, ss); err != nil {
 			log.Printf("GrpcFlowLimitMiddleware failed with error %v\n", err)
+			return err
+		}
+		return nil
+	}
+}
+
+func GrpcJwtFlowLimitMiddleware(serviceDetail *models.GatewayServiceInfo) func(srv interface{}, ss grpc.ServerStream, info *grpc.StreamServerInfo, handler grpc.StreamHandler) error {
+	return func(srv interface{}, ss grpc.ServerStream, info *grpc.StreamServerInfo, h grpc.StreamHandler) error {
+		md, ok := metadata.FromIncomingContext(ss.Context())
+		if !ok {
+			return errors.New("miss metadata from context")
+		}
+		appInfos := md.Get("app")
+		if len(appInfos) == 0 {
+			if err := h(srv, ss); err != nil {
+				log.Printf("RPC failed with error %v\n", err)
+				return err
+			}
+			return nil
+		}
+
+		appInfo := &models.GatewayApp{}
+		if err := json.Unmarshal([]byte(appInfos[0]), appInfo); err != nil {
+			return err
+		}
+
+		peerCtx, ok := peer.FromContext(ss.Context())
+		if !ok {
+			return errors.New("peer not found with context")
+		}
+
+		peerAddr := peerCtx.Addr.String()
+		addrPos := strings.LastIndex(peerAddr, ":")
+		clientIP := peerAddr[0:addrPos]
+
+		if appInfo.QPS > 0 {
+			clientLimiter, err := handler.GetFlowLimiterHandler().GetLimiter(
+				consts.FlowAppPrefix+appInfo.AppID+"_"+clientIP,
+				float64(appInfo.QPS),
+			)
+			if err != nil {
+				return err
+			}
+			if !clientLimiter.Allow() {
+				return fmt.Errorf("%v flow limit %v", clientIP, appInfo.QPS)
+			}
+		}
+
+		if err := h(srv, ss); err != nil {
+			log.Printf("RPC failed with error %v\n", err)
 			return err
 		}
 		return nil
