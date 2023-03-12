@@ -12,7 +12,7 @@ func InitTCPRouter() *middleware.TcpSliceRouterHandler {
 		middleware.TCPFlowCountMiddleware(),
 		middleware.TCPFlowLimitMiddleware(),
 		middleware.TCPWhiteListMiddleware(),
-	// tcp_proxy_middleware.TCPBlackListMiddleware(),
+		middleware.TCPBlackListMiddleware(),
 	)
 
 	// 构建回调 handler

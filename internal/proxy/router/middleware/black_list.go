@@ -10,7 +10,7 @@ import (
 	"github.com/lllllan-fv/gateway-admin/public/resp"
 	"github.com/lllllan-fv/gateway-admin/public/utils"
 )
- 
+
 func HTTPBlackListMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		serverInterface, ok := c.Get("service")
@@ -37,6 +37,42 @@ func HTTPBlackListMiddleware() gin.HandlerFunc {
 			}
 		}
 
+		c.Next()
+	}
+}
+
+func TCPBlackListMiddleware() func(c *TcpSliceRouterContext) {
+	return func(c *TcpSliceRouterContext) {
+		serverInterface := c.Get("service")
+		if serverInterface == nil {
+			c.conn.Write([]byte("get service empty"))
+			c.Abort()
+			return
+		}
+		serviceDetail := serverInterface.(*models.GatewayServiceInfo)
+
+		whileIpList := []string{}
+		if serviceDetail.WhiteList != "" {
+			whileIpList = strings.Split(serviceDetail.WhiteList, ",")
+		}
+
+		blackIpList := []string{}
+		if serviceDetail.BlackList != "" {
+			blackIpList = strings.Split(serviceDetail.BlackList, ",")
+		}
+
+		splits := strings.Split(c.conn.RemoteAddr().String(), ":")
+		clientIP := ""
+		if len(splits) == 2 {
+			clientIP = splits[0]
+		}
+		if serviceDetail.OpenAuth == 1 && len(whileIpList) == 0 && len(blackIpList) > 0 {
+			if utils.InStringSlice(blackIpList, clientIP) {
+				c.conn.Write([]byte(fmt.Sprintf("%s in black ip list", clientIP)))
+				c.Abort()
+				return
+			}
+		}
 		c.Next()
 	}
 }
