@@ -68,3 +68,34 @@ func HTTPJwtFlowCountMiddleware() gin.HandlerFunc {
 		c.Next()
 	}
 }
+
+func TCPFlowCountMiddleware() func(c *TcpSliceRouterContext) {
+	return func(c *TcpSliceRouterContext) {
+		serverInterface := c.Get("service")
+		if serverInterface == nil {
+			c.conn.Write([]byte("get service empty"))
+			c.Abort()
+			return
+		}
+		serviceDetail := serverInterface.(*models.GatewayServiceInfo)
+
+		//统计项 1 全站 2 服务 3 租户
+		totalCounter, err := handler.GetFlowCounterHandler().GetCounter(consts.FlowTotal)
+		if err != nil {
+			c.conn.Write([]byte(err.Error()))
+			c.Abort()
+			return
+		}
+		totalCounter.Increase()
+
+		serviceCounter, err := handler.GetFlowCounterHandler().GetCounter(consts.FlowServicePrefix + serviceDetail.ServiceName)
+		if err != nil {
+			c.conn.Write([]byte(err.Error()))
+			c.Abort()
+			return
+		}
+		serviceCounter.Increase()
+
+		c.Next()
+	}
+}
