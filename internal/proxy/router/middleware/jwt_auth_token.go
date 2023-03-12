@@ -3,6 +3,7 @@ package middleware
 import (
 	"errors"
 	"fmt"
+	"log"
 	"strings"
 
 	"github.com/gin-gonic/gin"
@@ -10,6 +11,9 @@ import (
 	"github.com/lllllan-fv/gateway-admin/internal/proxy/models"
 	"github.com/lllllan-fv/gateway-admin/public/jwt"
 	"github.com/lllllan-fv/gateway-admin/public/resp"
+	"github.com/lllllan-fv/gateway-admin/public/utils"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/metadata"
 )
 
 // jwt auth token
@@ -51,5 +55,48 @@ func HTTPJwtAuthTokenMiddleware() gin.HandlerFunc {
 		}
 
 		c.Next()
+	}
+}
+
+func GrpcJwtAuthTokenMiddleware(serviceDetail *models.GatewayServiceInfo) func(srv interface{}, ss grpc.ServerStream, info *grpc.StreamServerInfo, handler grpc.StreamHandler) error {
+	return func(srv interface{}, ss grpc.ServerStream, info *grpc.StreamServerInfo, handler grpc.StreamHandler) error {
+		md, ok := metadata.FromIncomingContext(ss.Context())
+		if !ok {
+			return errors.New("miss metadata from context")
+		}
+
+		authToken := ""
+		auths := md.Get("authorization")
+		if len(auths) > 0 {
+			authToken = auths[0]
+		}
+
+		token := strings.ReplaceAll(authToken, "Bearer ", "")
+		appMatched := false
+		if token != "" {
+			claims, err := jwt.Decode(token)
+			if err != nil {
+				return err
+			}
+
+			appList := dao.ListApp()
+			for _, appInfo := range appList {
+				if appInfo.AppID == claims.Issuer {
+					md.Set("app", utils.Obj2Json(appInfo))
+					appMatched = true
+					break
+				}
+			}
+		}
+
+		if serviceDetail.OpenAuth == 1 && !appMatched {
+			return errors.New("not match valid app")
+		}
+
+		if err := handler(srv, ss); err != nil {
+			log.Printf("GrpcJwtAuthTokenMiddleware failed with error %v\n", err)
+			return err
+		}
+		return nil
 	}
 }
