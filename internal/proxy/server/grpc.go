@@ -45,7 +45,7 @@ func GrpcServerRun() {
 			s := grpc.NewServer(
 				grpc.ChainStreamInterceptor(
 					middleware.GrpcFlowCountMiddleware(serviceDetail),
-				// grpc_proxy_middleware.GrpcFlowLimitMiddleware(serviceDetail),
+					middleware.GrpcFlowLimitMiddleware(serviceDetail),
 				// grpc_proxy_middleware.GrpcJwtAuthTokenMiddleware(serviceDetail),
 				// grpc_proxy_middleware.GrpcJwtFlowCountMiddleware(serviceDetail),
 				// grpc_proxy_middleware.GrpcJwtFlowLimitMiddleware(serviceDetail),

@@ -3,6 +3,7 @@ package middleware
 import (
 	"errors"
 	"fmt"
+	"log"
 	"strings"
 
 	"github.com/gin-gonic/gin"
@@ -10,6 +11,8 @@ import (
 	"github.com/lllllan-fv/gateway-admin/public/consts"
 	"github.com/lllllan-fv/gateway-admin/public/handler"
 	"github.com/lllllan-fv/gateway-admin/public/resp"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/peer"
 )
 
 func HTTPFlowLimitMiddleware() gin.HandlerFunc {
@@ -127,5 +130,50 @@ func TCPFlowLimitMiddleware() func(c *TcpSliceRouterContext) {
 			}
 		}
 		c.Next()
+	}
+}
+
+func GrpcFlowLimitMiddleware(serviceDetail *models.GatewayServiceInfo) func(srv interface{}, ss grpc.ServerStream, info *grpc.StreamServerInfo, handler grpc.StreamHandler) error {
+	return func(srv interface{}, ss grpc.ServerStream, info *grpc.StreamServerInfo, h grpc.StreamHandler) error {
+		if serviceDetail.ServiceFlowLimit != 0 {
+			serviceLimiter, err := handler.GetFlowLimiterHandler().GetLimiter(
+				consts.FlowServicePrefix+serviceDetail.ServiceName,
+				float64(serviceDetail.ServiceFlowLimit),
+			)
+			if err != nil {
+				return err
+			}
+			if !serviceLimiter.Allow() {
+				return fmt.Errorf("service flow limit %v", serviceDetail.ServiceFlowLimit)
+			}
+		}
+
+		peerCtx, ok := peer.FromContext(ss.Context())
+		if !ok {
+			return errors.New("peer not found with context")
+		}
+
+		peerAddr := peerCtx.Addr.String()
+		addrPos := strings.LastIndex(peerAddr, ":")
+		clientIP := peerAddr[0:addrPos]
+
+		if serviceDetail.ClientIPFlowLimit > 0 {
+			clientLimiter, err := handler.GetFlowLimiterHandler().GetLimiter(
+				consts.FlowServicePrefix+serviceDetail.ServiceName+"_"+clientIP,
+				float64(serviceDetail.ClientIPFlowLimit),
+			)
+			if err != nil {
+				return err
+			}
+			if !clientLimiter.Allow() {
+				return fmt.Errorf("%v flow limit %v", clientIP, serviceDetail.ClientIPFlowLimit)
+			}
+		}
+
+		if err := h(srv, ss); err != nil {
+			log.Printf("GrpcFlowLimitMiddleware failed with error %v\n", err)
+			return err
+		}
+		return nil
 	}
 }
