@@ -28,7 +28,7 @@ func TcpServerRun() {
 		tempItem := serviceItem
 		go func(serviceDetail *models.GatewayServiceInfo) {
 			addr := fmt.Sprintf(":%d", serviceDetail.Port)
-			_, err := handler.GetLoadBalancerHandler().GetLoadBalancer(serviceDetail)
+			rb, err := handler.GetLoadBalancerHandler().GetLoadBalancer(serviceDetail)
 			if err != nil {
 				log.Fatalf(" [INFO] GetTcpLoadBalancer %v err:%v\n", addr, err)
 				return
@@ -39,7 +39,7 @@ func TcpServerRun() {
 			baseCtx := context.WithValue(context.Background(), serviceKey, serviceDetail)
 			tcpServer := &tcp_server.TcpServer{
 				Addr:    addr,
-				Handler: router.InitTCPRouter(),
+				Handler: router.InitTCPRouter(rb),
 				BaseCtx: baseCtx,
 			}
 
