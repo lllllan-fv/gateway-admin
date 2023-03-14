@@ -13,10 +13,10 @@ func GetDashBoard(ctx *context.Context) (types.Panel, error) {
 	colComp := components.Col()
 	var size = types.SizeMD(3).SM(6).XS(12)
 
-	smallbox1 := smallbox.New().SetColor("blue").SetIcon("ion-ios-gear-outline").SetUrl("/").SetTitle("new users").SetValue("345￥").GetContent()
-	smallbox2 := smallbox.New().SetColor("yellow").SetIcon("ion-ios-cart-outline").SetUrl("/").SetTitle("new users").SetValue("80%").GetContent()
-	smallbox3 := smallbox.New().SetColor("red").SetIcon("fa-user").SetUrl("/").SetTitle("new users").SetValue("645￥").GetContent()
-	smallbox4 := smallbox.New().SetColor("green").SetIcon("ion-ios-cart-outline").SetUrl("/").SetTitle("new users").SetValue("889￥").GetContent()
+	smallbox1 := smallbox.New().SetColor("green").SetIcon("fa-user").SetUrl("/").SetTitle("租户数").SetValue("5").GetContent()
+	smallbox2 := smallbox.New().SetColor("blue").SetIcon("ion-ios-gear-outline").SetUrl("/").SetTitle("服务数").SetValue("10").GetContent()
+	smallbox3 := smallbox.New().SetColor("yellow").SetIcon("ion-ios-cart-outline").SetUrl("/").SetTitle("当日请求量").SetValue("1120").GetContent()
+	smallbox4 := smallbox.New().SetColor("red").SetIcon("ion-ios-cart-outline").SetUrl("/").SetTitle("当前 QPS").SetValue("5").GetContent()
 
 	col1 := colComp.SetSize(size).SetContent(smallbox1).GetContent()
 	col2 := colComp.SetSize(size).SetContent(smallbox2).GetContent()
